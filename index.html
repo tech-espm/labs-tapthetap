@@ -1048,6 +1048,7 @@
 
 					this.children.bringToTop(fade);
 					tweenAlpha(this, 0, fade, function () {
+						btFull.setInteractive();
 						fade.destroy();
 						fade = null;
 					});
