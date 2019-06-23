@@ -68,8 +68,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="assets\A_textura_parede.png" />
-    <Content Include="assets\blues.mp3" />
-    <Content Include="assets\blues_192.mp3" />
     <Content Include="assets\blues_vbr.mp3" />
     <Content Include="assets\bt_full.png" />
     <Content Include="assets\bt_playagain.png" />
@@ -102,7 +100,6 @@
     <Content Include="assets\F_persona07.png" />
     <Content Include="assets\F_persona08.png" />
     <Content Include="assets\F_persona09.png" />
-    <Content Include="assets\people_talking.mp3" />
     <Content Include="assets\people_talking_vbr.mp3" />
     <Content Include="assets\preto.png" />
     <Content Include="assets\tap.mp3" />
