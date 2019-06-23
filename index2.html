@@ -243,6 +243,7 @@
 				game.load.image("bt_rules", "assets/bt_rules.png");
 				game.load.image("bt_full", "assets/bt_full.png");
 				game.load.image("tela_intro", "assets/tela_intro.png");
+				game.load.image("credits", "assets/credits.png");
 				game.load.image("preto", "assets/preto.png");
 			};
 
@@ -288,6 +289,9 @@
 
 				var tela_intro = game.add.tileSprite(0, 0, game.width, game.height, "tela_intro");
 
+				var credits = game.add.image((game.width * 0.5) | 0, (game.height - 50) | 0, "credits");
+				credits.anchor.set(0.5);
+
 				var btFull = game.add.image(50, 50, "bt_full");
 				btFull.anchor.set(0.5);
 				btFull.inputEnabled = true;
@@ -305,9 +309,9 @@
 					toggleFullScreen();
 				});
 
-				var btStart = createBtStart((game.height - 200) | 0);
+				var btStart = createBtStart((game.height - 210) | 0);
 
-				var btRules = game.add.image((game.width * 0.5) | 0, (game.height - 100) | 0, "bt_rules");
+				var btRules = game.add.image((game.width * 0.5) | 0, (game.height - 120) | 0, "bt_rules");
 				btRules.anchor.set(0.5);
 				btRules.inputEnabled = true;
 				btRules.input.useHandCursor = true;
@@ -341,6 +345,7 @@
 								openingRules = true;
 
 								tela_intro.visible = true;
+								credits.visible = true;
 								btFull.visible = true;
 								btStart.visible = true;
 								btRules.visible = true;
@@ -361,6 +366,7 @@
 							game.add.tween(btStart2).to({ alpha: 1 }, 500, Phaser.Easing.Sinusoidal.InOut, true);
 							game.add.tween(tela_rules).to({ alpha: 1 }, 500, Phaser.Easing.Sinusoidal.InOut, true).onComplete.add(function () {
 								tela_intro.visible = false;
+								credits.visible = false;
 								btFull.visible = false;
 								btStart.visible = false;
 								btRules.visible = false;
@@ -658,15 +664,15 @@
 				// plain HTML audio elements, which supports streaming.
 				audioPeople = document.createElement("audio");
 				audioPeople.loop = true;
-				audioPeople.autoplay = true;
 				audioPeople.volume = 0.15;
 				audioPeople.src = "assets/people_talking_vbr.mp3";
+				audioPeople.play();
 
 				audioBlues = document.createElement("audio");
 				audioBlues.loop = true;
-				audioBlues.autoplay = true;
 				audioBlues.volume = 0.6;
 				audioBlues.src = "assets/blues_vbr.mp3";
+				audioBlues.play();
 
 				//var audioLoader = new Phaser.Loader(game);
 				//audioLoader.onFileComplete.add(function (progress, fileKey, success, totalLoadedFiles, totalFiles) {

@@ -77,6 +77,7 @@
     <Content Include="assets\B_textura_balcao.png" />
     <Content Include="assets\B_textura_balcao_canto.png" />
     <Content Include="assets\confetti.png" />
+    <Content Include="assets\credits.png" />
     <Content Include="assets\C_balao_pedido.png" />
     <Content Include="assets\C_barra_pontos.png" />
     <Content Include="assets\C_barra_tempo.png" />
