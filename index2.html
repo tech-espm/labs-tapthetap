@@ -1,0 +1,1086 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="pt-br">
+<head>
+	<meta charset="utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, minimal-ui, shrink-to-fit=no" />
+
+	<meta property="og:locale" content="pt_BR" />
+	<meta property="og:type" content="website" />
+	<meta property="og:url" content="https://tech-espm.github.io/labs-tapthetap/" />
+	<meta property="og:title" content="Let's Beer - Tap The Tap" />
+	<meta property="og:site_name" content="Let's Beer - Tap The Tap" />
+	<meta property="og:description" content="Let's Beer - Tap The Tap" />
+	<meta property="og:image" content="https://tech-espm.github.io/labs-tapthetap/assets/tela_intro.png" />
+	<meta property="og:image:type" content="image/png">
+	<meta property="og:image:width" content="1280">
+	<meta property="og:image:height" content="720">
+
+	<meta name="author" content="ESPM" />
+	<meta name="description" content="Let's Beer - Tap The Tap" />
+	<meta name="keywords" content="let's beer, tap the tap, beer, tap, game, mobile game, desktop game" />
+
+	<link rel="apple-touch-icon" sizes="57x57" href="apple-icon-57x57.png" />
+	<link rel="apple-touch-icon" sizes="60x60" href="apple-icon-60x60.png" />
+	<link rel="apple-touch-icon" sizes="72x72" href="apple-icon-72x72.png" />
+	<link rel="apple-touch-icon" sizes="76x76" href="apple-icon-76x76.png" />
+	<link rel="apple-touch-icon" sizes="114x114" href="apple-icon-114x114.png" />
+	<link rel="apple-touch-icon" sizes="120x120" href="apple-icon-120x120.png" />
+	<link rel="apple-touch-icon" sizes="144x144" href="apple-icon-144x144.png" />
+	<link rel="apple-touch-icon" sizes="152x152" href="apple-icon-152x152.png" />
+	<link rel="apple-touch-icon" sizes="180x180" href="apple-icon-180x180.png" />
+	<link rel="icon" type="image/png" sizes="192x192" href="android-icon-192x192.png" />
+	<link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png" />
+	<link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png" />
+	<link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png" />
+	<link rel="Shortcut Icon" href="favicon.ico" />
+	<link rel="Shortcut Icon" href="favicon.png" />
+	<link rel="manifest" href="manifest.json" />
+	<meta name="msapplication-config" content="browserconfig.xml" />
+	<meta name="theme-color" content="#222222" />
+
+	<title>Let's Beer - Tap The Tap</title>
+
+	<link href="https://fonts.googleapis.com/css?family=Press+Start+2P&display=swap" rel="stylesheet" />
+
+	<style type="text/css">
+		html {
+			height: 100%;
+			min-height: 100%;
+			max-height: 100%;
+		}
+
+		body, input, textarea, select {
+			font: normal 30px 'Press Start 2P', sans-serif;
+		}
+
+		body {
+			background: #000;
+			padding: 0;
+			margin: 0;
+			color: #fff;
+			height: 100%;
+			min-height: 100%;
+			max-height: 100%;
+			overflow: hidden;
+		}
+
+		#divParent {
+			padding: 0;
+			margin: 0;
+			display: table;
+		}
+
+		#divGame {
+			padding: 0;
+			margin: 0;
+			width: 100%;
+			min-width: 100%;
+			height: 100%;
+			min-height: 100%;
+			display: table-cell;
+			vertical-align: middle;
+		}
+
+		#divLoading {
+			position: fixed;
+			z-index: 9999;
+			margin: 0;
+			padding: 0;
+			left: 0;
+			bottom: 50px;
+			width: 100%;
+			text-align: center;
+			opacity: 0;
+			-webkit-transition: opacity ease-in-out .2s;
+			-o-transition: opacity ease-in-out .2s;
+			transition: opacity ease-in-out .2s;
+			user-select: none;
+			-moz-user-select: none;
+			pointer-events: none;
+		}
+
+			#divLoading.opaque {
+				opacity: 1;
+			}
+
+		canvas {
+			margin: 0 auto;
+		}
+	</style>
+</head>
+<body>
+
+	<div id="divParent"><div id="divGame"></div></div>
+
+	<div id="divLoading" class="opaque">Loading...</div>
+
+	<script type="text/javascript" src="phaser-2.6.2.min.js"></script>
+	<script type="text/javascript">
+		//<![CDATA[
+		"use strict";
+
+		var game = new Phaser.Game(1280, 720, Phaser.AUTO, "divGame"),
+			divLoading = document.getElementById("divLoading"), divLoadingTimeout = 0,
+			divParent = null, divGame = null;
+
+		function showLoading() {
+			if (!divLoading) {
+				divLoading = document.createElement("div");
+				divLoading.setAttribute("id", "divLoading");
+				divLoading.appendChild(document.createTextNode("Loading..."));
+				document.body.appendChild(divLoading);
+				if (divLoadingTimeout)
+					clearTimeout(divLoadingTimeout);
+				divLoadingTimeout = setTimeout(function () {
+					divLoadingTimeout = 0;
+					divLoading.className = "opaque";
+				}, 10);
+			}
+		}
+
+		function hideLoading() {
+			if (divLoading) {
+				divLoading.className = "";
+				if (divLoadingTimeout)
+					clearTimeout(divLoadingTimeout);
+				divLoadingTimeout = setTimeout(function () {
+					divLoadingTimeout = 0;
+					document.body.removeChild(divLoading);
+					divLoading = null;
+				}, 210);
+			}
+		}
+
+		function init() {
+
+			game.input.maxPointers = 1;
+
+			// Keep the game running even after switching tabs
+			game.stage.disableVisibilityChange = true;
+
+			// https://phaser.io/docs/2.6.2/Phaser.ScaleManager.html
+
+			// Due to a few issues in the scaling performed by Phaser 2.6.2, we will do it ourselves!
+			// And since we are doing it manually, just turn off all automatic options...
+			game.scale.compatibility.orientationFallback = "viewport";
+			game.scale.compatibility.noMargins = true;
+			game.scale.pageAlignHorizontally = false;
+			game.scale.pageAlignVertically = false;
+
+			// https://phaser.io/docs/2.6.2/Phaser.ScaleManager.html#startFullScreen
+			game.scale.fullScreenScaleMode = Phaser.ScaleManager.USER_SCALE;
+			game.scale.scaleMode = Phaser.ScaleManager.USER_SCALE;
+
+			function atualizarScale() {
+				var windowWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+				var windowHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+				divParent.style.width = windowWidth + "px";
+				divParent.style.height = windowHeight + "px";
+
+				// If we are not in a desktop environment, apply the scale regardless the screen dimensions
+				var width, height;
+				if (!game.device.desktop || windowWidth <= game.width || windowHeight <= game.height) {
+					var ratioJogo = game.width / game.height;
+					var ratioTela = windowWidth / windowHeight;
+
+					if (ratioTela > ratioJogo) {
+						// Vertical borders on each side
+						height = windowHeight;
+						width = ((game.width * (windowHeight / game.height)) + 0.5) | 0;
+					} else {
+						// Horizontal borders above and below
+						width = windowWidth;
+						height = ((game.height * (windowWidth / game.width)) + 0.5) | 0;
+					}
+
+					game.scale.setUserScale(width / game.width, height / game.height);
+				} else {
+					width = game.width;
+					height = game.height;
+					game.scale.setUserScale(1, 1);
+				}
+
+				// Phaser creates a div inside divGame when in fullscreen mode...
+				var div = divGame.getElementsByTagName("div");
+				if (div && div.length && div[0])
+					div[0].style.paddingTop = ((windowHeight > height) ? ((windowHeight - height) >> 1) : "0") + "px";
+
+				game.scale.refresh();
+			}
+
+			if (!divParent) {
+				divParent = document.getElementById("divParent");
+				divGame = document.getElementById("divGame");
+				window.addEventListener("resize", atualizarScale);
+			}
+
+			atualizarScale();
+		}
+
+		function toggleFullScreen() {
+			if (game.scale.isFullScreen)
+				game.scale.stopFullScreen();
+			else
+				game.scale.startFullScreen(false);
+		}
+
+		function blink(x) {
+			return (x <= 0 ? 0 : (x >= 1 ? 1 : ((x * 8) & 1)));
+		}
+
+		function InitialState(game) {
+			var fade, openingRules;
+
+			var audioBt;
+
+			this.init = init;
+
+			this.preload = function () {
+				game.load.audio("bt_sound_mp3", "assets/bt_sound.mp3", true);
+				game.load.image("bt_start", "assets/bt_start.png");
+				game.load.image("bt_rules", "assets/bt_rules.png");
+				game.load.image("bt_full", "assets/bt_full.png");
+				game.load.image("tela_intro", "assets/tela_intro.png");
+				game.load.image("preto", "assets/preto.png");
+			};
+
+			function createBtStart(y) {
+				var btStart = game.add.image((game.width * 0.5) | 0, y, "bt_start");
+				btStart.anchor.set(0.5);
+				btStart.inputEnabled = true;
+				btStart.input.useHandCursor = true;
+				btStart.events.onInputDown.add(function () {
+					if (fade || openingRules)
+						return;
+
+					audioBt.stop();
+					audioBt.play();
+
+					btStart.alpha = 0;
+					game.add.tween(btStart).to({ alpha: 1 }, 500, blink, true);
+
+					fade = game.add.image(0, 0, "preto");
+					fade.width = game.width;
+					fade.height = game.height;
+					fade.alpha = 0;
+					game.add.tween(fade).to({ alpha: 1 }, 500, Phaser.Easing.Sinusoidal.InOut, true).onComplete.add(function () {
+						showLoading();
+
+						game.state.start("GameState");
+
+						var divLoadFont = document.getElementById("divLoadFont");
+						if (divLoadFont)
+							document.body.removeChild(divLoadFont);
+					});
+				});
+				return btStart;
+			}
+
+			this.create = function () {
+				hideLoading();
+
+				openingRules = false;
+
+				audioBt = game.add.audio("bt_sound_mp3", 0.3, false, true);
+				audioBt.allowMultiple = false;
+
+				var tela_intro = game.add.tileSprite(0, 0, game.width, game.height, "tela_intro");
+
+				var btFull = game.add.image(50, 50, "bt_full");
+				btFull.anchor.set(0.5);
+				btFull.inputEnabled = true;
+				btFull.input.useHandCursor = true;
+				btFull.events.onInputDown.add(function () {
+					if (fade || openingRules)
+						return;
+
+					audioBt.stop();
+					audioBt.play();
+
+					btFull.alpha = 0;
+					game.add.tween(btFull).to({ alpha: 1 }, 500, blink, true);
+
+					toggleFullScreen();
+				});
+
+				var btStart = createBtStart((game.height - 200) | 0);
+
+				var btRules = game.add.image((game.width * 0.5) | 0, (game.height - 100) | 0, "bt_rules");
+				btRules.anchor.set(0.5);
+				btRules.inputEnabled = true;
+				btRules.input.useHandCursor = true;
+				btRules.events.onInputDown.add(function () {
+					if (fade || openingRules)
+						return;
+
+					audioBt.stop();
+					audioBt.play();
+
+					btRules.alpha = 0;
+					game.add.tween(btRules).to({ alpha: 1 }, 500, blink, true);
+
+					openingRules = true;
+
+					// Delay the loading of this image in order to make the game start faster
+					var loader = new Phaser.Loader(game);
+					loader.onFileComplete.add(function (progress, fileKey, success, totalLoadedFiles, totalFiles) {
+						if (success) {
+							var btStart2, tela_rules = game.add.image(0, 0, "tela_rules");
+							tela_rules.alpha = 0;
+							tela_rules.inputEnabled = true;
+							tela_rules.input.useHandCursor = true;
+							tela_rules.events.onInputDown.add(function () {
+								if (fade || openingRules)
+									return;
+
+								audioBt.stop();
+								audioBt.play();
+
+								openingRules = true;
+
+								tela_intro.visible = true;
+								btFull.visible = true;
+								btStart.visible = true;
+								btRules.visible = true;
+
+								game.add.tween(btStart2).to({ alpha: 0 }, 500, Phaser.Easing.Sinusoidal.InOut, true);
+								game.add.tween(tela_rules).to({ alpha: 0 }, 500, Phaser.Easing.Sinusoidal.InOut, true).onComplete.add(function () {
+									openingRules = false;
+									tela_rules.destroy(true, true);
+									tela_rules = null;
+									btStart2.destroy();
+									btStart2 = null;
+								});
+							});
+
+							btStart2 = createBtStart((game.height - 75) | 0);
+							btStart2.alpha = 0;
+
+							game.add.tween(btStart2).to({ alpha: 1 }, 500, Phaser.Easing.Sinusoidal.InOut, true);
+							game.add.tween(tela_rules).to({ alpha: 1 }, 500, Phaser.Easing.Sinusoidal.InOut, true).onComplete.add(function () {
+								tela_intro.visible = false;
+								btFull.visible = false;
+								btStart.visible = false;
+								btRules.visible = false;
+								openingRules = false;
+							});
+						} else {
+							openingRules = false;
+						}
+					});
+					loader.image("tela_rules", "assets/tela_rules.png");
+					loader.start();
+				});
+
+				fade = game.add.image(0, 0, "preto");
+				fade.width = game.width;
+				fade.height = game.height;
+				fade.alpha = 1;
+				game.add.tween(fade).to({ alpha: 0 }, 500, Phaser.Easing.Sinusoidal.InOut, true).onComplete.add(function () {
+					fade.destroy();
+					fade = null;
+				});
+			};
+
+			this.update = function () {
+			};
+		}
+
+		function GameState(game) {
+			var fade;
+
+			var bg, shelf, btFull;
+
+			var audioTap, audioBt, audioPeople, audioBlues;
+
+			var score, running, lives, hearts;
+			var level, startTime, maxTime, maxMaxTime = 12000, minMaxTime = 2000;
+			var barTime1, barTime2;
+			var txtScore;
+			var xp1, yp1, xp2, yp2, xp3, yp3;
+			var xt1, yt1, xt2, yt2, xt3, yt3;
+			var tap1, tap2, tap3;
+			var ip1, ip2, ip3;
+			var p1, p2, p3;
+			var ipc1, ipc2, ipc3;
+			var pc1, pc2, pc3;
+			var itc1, itc2, itc3;
+			var tc1, tc2, tc3;
+
+			var numConfetti = 100;
+			var confetti;
+
+			var maxLives = 5;
+
+			var numPeople = 8;
+			var peopleFrames = [
+				[0, 0, 0, 0, 1, 0, 0, 1, 0, 0],
+				[0, 0, 0, 1, 2, 1, 0, 0, 0],
+				[0],
+				[0, 0, 1, 2, 1, 0, 0],
+				[0, 0, 1, 1],
+				[0, 0, 1, 1],
+				[0, 0, 1, 0, 0],
+				[0, 0, 1, 1]
+			];
+
+			var numBeer = 5;
+			var beerFrames = [
+				[0, 1, 2, 3],
+				[1, 2, 3, 0],
+				[2, 3, 0, 1],
+				[3, 0, 1, 2],
+				[3, 0, 1, 2]
+			];
+
+			this.init = init;
+
+			this.preload = function () {
+				game.load.audio("tap_mp3", "assets/tap.mp3", true);
+				game.load.audio("bt_sound_mp3", "assets/bt_sound.mp3", true);
+				game.load.image("preto", "assets/preto.png");
+				game.load.image("bt_full", "assets/bt_full.png");
+				game.load.image("bt_playagain", "assets/bt_playagain.png");
+				game.load.image("A_textura_parede", "assets/A_textura_parede.png");
+				game.load.image("B_textura_balcao", "assets/B_textura_balcao.png");
+				game.load.image("B_textura_balcao_canto", "assets/B_textura_balcao_canto.png");
+				game.load.image("E_luminaria", "assets/E_luminaria.png");
+				game.load.image("E_prateleira", "assets/E_prateleira.png");
+				game.load.image("C_balao_pedido", "assets/C_balao_pedido.png");
+				game.load.image("C_barra_pontos", "assets/C_barra_pontos.png");
+				game.load.image("C_barra_vida", "assets/C_barra_vida.png");
+				game.load.image("C_barra_tempo", "assets/C_barra_tempo.png");
+				game.load.image("C_barra_tempo_01", "assets/C_barra_tempo_01.png");
+				game.load.image("C_barra_tempo_02", "assets/C_barra_tempo_02.png");
+				game.load.image("tela_final", "assets/tela_final.png");
+				game.load.spritesheet("F_persona01", "assets/F_persona01.png", 144, 240);
+				game.load.spritesheet("F_persona02", "assets/F_persona02.png", 144, 240);
+				game.load.spritesheet("F_persona03", "assets/F_persona03.png", 144, 240);
+				game.load.spritesheet("F_persona04", "assets/F_persona04.png", 144, 240);
+				game.load.spritesheet("F_persona05", "assets/F_persona05.png", 144, 240);
+				game.load.spritesheet("F_persona06", "assets/F_persona06.png", 144, 240);
+				game.load.spritesheet("F_persona07", "assets/F_persona07.png", 144, 240);
+				game.load.spritesheet("F_persona08", "assets/F_persona08.png", 144, 240);
+				game.load.spritesheet("E_tap", "assets/E_tap.png?1", 96, 240);
+				game.load.spritesheet("Tempo", "assets/Tempo.png", 92, 92);
+				game.load.spritesheet("D_cerveja_01", "assets/D_cerveja_01.png", 40, 60);
+				game.load.spritesheet("D_cerveja_02", "assets/D_cerveja_02.png", 40, 60);
+				game.load.spritesheet("D_cerveja_03", "assets/D_cerveja_03.png", 40, 60);
+				game.load.spritesheet("D_cerveja_04", "assets/D_cerveja_04.png", 40, 60);
+				game.load.spritesheet("D_cerveja_05", "assets/D_cerveja_05.png", 40, 60);
+				game.load.spritesheet("confetti", "assets/confetti.png", 9, 7);
+			};
+
+			this.create = function () {
+				hideLoading();
+
+				score = 0;
+				running = false;
+				lives = maxLives;
+				level = 0;
+				confetti = null;
+
+				audioTap = game.add.audio("tap_mp3", 0.55, false, true);
+				audioTap.allowMultiple = false;
+				audioBt = game.add.audio("bt_sound_mp3", 0.3, false, true);
+				audioBt.allowMultiple = false;
+				audioPeople = null;
+				audioBlues = null;
+
+				bg = game.add.tileSprite(0, 0, game.width, game.height, "A_textura_parede");
+
+				var x, y;
+
+				x = (game.width * 0.05) | 0;
+				y = (game.height * 0.3) | 0;
+				shelf = game.add.image(x, y, "E_prateleira");
+
+				x = (game.width * 0.075) | 0;
+				y = -(game.height * 0.1) | 0;
+				game.add.image(x, y, "E_luminaria");
+				game.add.image(x + 150, y, "E_luminaria");
+				game.add.image(x + 300, y, "E_luminaria");
+
+				xp1 = (game.width * 0.28) | 0;
+				yp1 = (game.height * 0.35) | 0;
+				xp2 = xp1 + 200;
+				yp2 = yp1;
+				xp3 = xp2 + 200;
+				yp3 = yp2;
+
+				game.add.image(xp1 + 50, yp1 - 180, "C_balao_pedido");
+				game.add.image(xp2 + 50, yp2 - 180, "C_balao_pedido");
+				game.add.image(xp3 + 50, yp3 - 180, "C_balao_pedido");
+
+				btFull = game.add.image(50, 50, "bt_full");
+				btFull.anchor.set(0.5);
+				btFull.inputEnabled = true;
+				btFull.input.useHandCursor = true;
+				btFull.events.onInputDown.add(function () {
+					if (fade)
+						return;
+
+					audioBt.stop();
+					audioBt.play();
+
+					btFull.alpha = 0;
+					game.add.tween(btFull).to({ alpha: 1 }, 500, blink, true);
+
+					toggleFullScreen();
+				});
+
+				xt1 = (game.width - 310) | 0;
+				yt1 = (game.height - 478) | 0;
+				tap1 = game.add.sprite(xt1 - 4, yt1, "E_tap");
+				tap1.animations.add("acao", [0, 1, 2, 3, 4, 3, 2, 1], 24, false).onComplete.add(function () {
+					tap1.animations.play("parado");
+					validateTaps();
+				});
+				tap1.animations.add("parado", [0], 1, false);
+				tap1.animations.play("parado");
+				tap1.inputEnabled = true;
+				tap1.input.useHandCursor = true;
+				tap1.events.onInputDown.add(function () {
+					if (fade || !running || tap1.animations.currentAnim.name != "parado")
+						return;
+
+					audioTap.stop();
+					audioTap.play();
+
+					tap1.animations.play("acao");
+
+					itc1++;
+					if (itc1 >= numBeer)
+						itc1 = 0;
+					adjustTap(1);
+				});
+
+				xt2 = xt1 + 108;
+				yt2 = yt1;
+				tap2 = game.add.image(xt2 - 4, yt2, "E_tap");
+				tap2.animations.add("acao", [0, 1, 2, 3, 4, 3, 2, 1], 24, false).onComplete.add(function () {
+					tap2.animations.play("parado");
+					validateTaps();
+				});
+				tap2.animations.add("parado", [0], 1, false);
+				tap2.animations.play("parado");
+				tap2.inputEnabled = true;
+				tap2.input.useHandCursor = true;
+				tap2.events.onInputDown.add(function () {
+					if (fade || !running || tap2.animations.currentAnim.name != "parado")
+						return;
+
+					audioTap.stop();
+					audioTap.play();
+
+					tap2.animations.play("acao");
+
+					itc2++;
+					if (itc2 >= numBeer)
+						itc2 = 0;
+					adjustTap(2);
+				});
+
+				xt3 = xt2 + 108;
+				yt3 = yt1;
+				tap3 = game.add.image(xt3 - 4, yt3, "E_tap");
+				tap3.animations.add("acao", [0, 1, 2, 3, 4, 3, 2, 1], 24, false).onComplete.add(function () {
+					tap3.animations.play("parado");
+					validateTaps();
+				});
+				tap3.animations.add("parado", [0], 1, false);
+				tap3.animations.play("parado");
+				tap3.inputEnabled = true;
+				tap3.input.useHandCursor = true;
+				tap3.events.onInputDown.add(function () {
+					if (fade || !running || tap3.animations.currentAnim.name != "parado")
+						return;
+
+					audioTap.stop();
+					audioTap.play();
+
+					tap3.animations.play("acao");
+
+					itc3++;
+					if (itc3 >= numBeer)
+						itc3 = 0;
+					adjustTap(3);
+				});
+
+				x = (game.width * 0.2) | 0;
+				y = (game.height * 0.67) | 0;
+				game.add.image(x, y, "B_textura_balcao_canto");
+				game.add.tileSprite(x + 58, y, game.width, 322, "B_textura_balcao");
+
+				x += 100;
+				y = (game.height - 104) | 0;
+				hearts = [];
+				for (lives = 0; lives < maxLives; lives++) {
+					hearts.push(game.add.image(x, y, "C_barra_vida"));
+					x += 64;
+				}
+
+				x = ((game.width * 0.95) | 0) - 168 + 4;
+				y = (game.height - 104 + 4) | 0;
+				barTime2 = game.add.image(x, y, "C_barra_tempo_02");
+				barTime1 = game.add.image(x, y, "C_barra_tempo_01");
+				game.add.image(x - 4, y - 4, "C_barra_tempo");
+
+				x = ((game.width * 0.95) | 0) - 168;
+				y = (game.width * 0.05) | 0;
+				game.add.image(x, y, "C_barra_pontos");
+				txtScore = game.add.text(x, y + 34, "0", {
+					font: "normal 30px 'Press Start 2P'",
+					boundsAlignH: "right",
+					fill: "#ffffff",
+					maxLines: 1
+				});
+				txtScore.setTextBounds(0, 0, 158, 50);
+
+				p1 = null;
+				p2 = null;
+				p3 = null;
+				pc1 = null;
+				pc2 = null;
+				pc3 = null;
+				tc1 = null;
+				tc2 = null;
+				tc3 = null;
+
+				setupLevel();
+
+				// Delay the loading of the background audio to try to make the
+				// game itself load and start faster, even in slow connections.
+				// Also, instead of using Phaser's audio system, which loads and
+				// decodes the entire files into memory before playing, let's use
+				// plain HTML audio elements, which supports streaming.
+				audioPeople = document.createElement("audio");
+				audioPeople.loop = true;
+				audioPeople.autoplay = true;
+				audioPeople.volume = 0.15;
+				audioPeople.src = "assets/people_talking_vbr.mp3";
+
+				audioBlues = document.createElement("audio");
+				audioBlues.loop = true;
+				audioBlues.autoplay = true;
+				audioBlues.volume = 0.6;
+				audioBlues.src = "assets/blues_vbr.mp3";
+
+				//var audioLoader = new Phaser.Loader(game);
+				//audioLoader.onFileComplete.add(function (progress, fileKey, success, totalLoadedFiles, totalFiles) {
+				//	if (success) {
+				//		switch (fileKey) {
+				//			case "people_talking_mp3":
+				//				if (!audioPeople) {
+				//					audioPeople = game.add.audio("people_talking_mp3", 0.1, true, true);
+				//					audioPeople.allowMultiple = false;
+				//					audioPeople.play();
+				//				}
+				//				break;
+				//			case "blues_mp3":
+				//				if (!audioBlues) {
+				//					audioBlues = game.add.audio("blues_mp3", 0.6, true, true);
+				//					audioBlues.allowMultiple = false;
+				//					audioBlues.play();
+				//				}
+				//				break;
+				//		}
+				//	}
+				//});
+				//audioLoader.audio("people_talking_mp3", "assets/people_talking_vbr.mp3", true);
+				//audioLoader.audio("blues_mp3", "assets/blues_vbr.mp3", true);
+				//audioLoader.start();
+			};
+
+			function adjustTap(i) {
+				switch (i) {
+					case 1:
+						if (tc1)
+							tc1.destroy();
+
+						tc1 = game.add.sprite(xt1 + 16, yt1 + 152, "D_cerveja_0" + (itc1 + 1));
+						tc1.animations.add("acao", beerFrames[ipc1], 5, true);
+						tc1.animations.play("acao");
+						break;
+
+					case 2:
+						if (tc2)
+							tc2.destroy();
+
+						tc2 = game.add.sprite(xt2 + 16, yt2 + 152, "D_cerveja_0" + (itc2 + 1));
+						tc2.animations.add("acao", beerFrames[ipc2], 5, true);
+						tc2.animations.play("acao");
+						break;
+
+					case 3:
+						if (tc3)
+							tc3.destroy();
+
+						tc3 = game.add.sprite(xt3 + 16, yt3 + 152, "D_cerveja_0" + (itc3 + 1));
+						tc3.animations.add("acao", beerFrames[ipc3], 5, true);
+						tc3.animations.play("acao");
+						break;
+				}
+			}
+
+			function endLevel() {
+				running = false;
+
+				var earnedScore = 0;
+				if (itc1 === ipc1)
+					earnedScore += 10;
+				if (itc2 === ipc2)
+					earnedScore += 10;
+				if (itc3 === ipc3)
+					earnedScore += 10;
+
+				score += earnedScore;
+
+				if (earnedScore !== 30)
+					lives--;
+
+				if (lives > 0)
+					level++;
+
+				fade = game.add.image(0, 0, "preto");
+				fade.width = game.width;
+				fade.height = game.height;
+				fade.alpha = 0;
+				game.add.tween(fade).to({ alpha: 1 }, 500, Phaser.Easing.Sinusoidal.InOut, true).onComplete.add(function () {
+					if (lives <= 0) {
+						setupGameOver();
+						return;
+					}
+
+					setupLevel();
+
+					var txtResult = game.add.text((game.width * 0.5) | 0, (game.height + 35) | 0, (earnedScore !== 30) ? "Fail :(" : "Perfect!", {
+						font: "normal 50px 'Press Start 2P'",
+						align: "center",
+						boundsAlignH: "center",
+						fill: "#ffffff",
+						maxLines: 1
+					});
+					txtResult.anchor.set(0.5);
+					game.add.tween(txtResult).to({ alpha: 0, y: (game.height * 0.65) | 0 }, 1500, Phaser.Easing.Sinusoidal.InOut, true).onComplete.add(function () {
+						txtResult.destroy();
+						txtResult = null;
+					});
+
+					var txtEarnedScore = game.add.text(((game.width * 0.95) | 0) - 168, (game.height + 10) | 0, "+" + earnedScore, {
+						font: "normal 30px 'Press Start 2P'",
+						boundsAlignH: "right",
+						fill: "#ffffff",
+						maxLines: 1
+					});
+					txtEarnedScore.setTextBounds(0, 0, 158, 50);
+					game.add.tween(txtEarnedScore).to({ alpha: 0, y: (game.height - 150) | 0 }, 1500, Phaser.Easing.Sinusoidal.InOut, true).onComplete.add(function () {
+						txtEarnedScore.destroy();
+						txtEarnedScore = null;
+					});
+
+					if (earnedScore === 30)
+						popConfetti();
+				});
+			}
+
+			function popConfetti() {
+				var i, c, x, v, a;
+				if (confetti) {
+					for (i = confetti.length - 1; i >= 0; i--) {
+						if ((c = confetti[i])) {
+							c.destroy();
+							confetti[i] = null;
+						}
+					}
+				} else {
+					confetti = new Array(numConfetti);
+				}
+
+				for (i = numConfetti - 1; i >= 0; i--) {
+					// Choose an angle between 30 deg and 90 deg
+					a = game.rnd.realInRange(Math.PI / 6, Math.PI * 0.5);
+					v = game.rnd.realInRange(300, 900);
+					if (i < (numConfetti >> 1)) {
+						x = 0;
+					} else {
+						x = game.width;
+						v = -v;
+					}
+					c = game.add.sprite(x, game.height + 10, "confetti", game.rnd.integerInRange(0, 4));
+					game.physics.arcade.enable(c);
+					c.anchor.set(0.5);
+					c.scale.x = game.rnd.realInRange(2, 4);
+					c.rotation = game.rnd.realInRange(0, 5);
+					c.rotationVelocity = game.rnd.realInRange(10, 30);
+					c.body.gravity.y = 800;
+					c.body.velocity.x = Math.cos(a) * v;
+					c.body.velocity.y = -Math.abs(Math.sin(a) * v);
+					confetti[i] = c;
+
+					// The algorithm below does not look so good as it distributes
+					// all the confetti in a rectangle-like shape. That's why in the
+					// algorithm above we actually choose an angle and adapt the
+					// velocity accordingly, forming a more rounded-like shape...
+					//v = game.rnd.realInRange(100, 300);
+					//if (i < (numConfetti >> 1)) {
+					//	x = 0;
+					//} else {
+					//	x = game.width;
+					//	v = -v;
+					//}
+					//c = game.add.sprite(x, game.height + 10, "confetti", game.rnd.integerInRange(0, 4));
+					//game.physics.arcade.enable(c);
+					//c.anchor.set(0.5);
+					//c.scale.x = game.rnd.realInRange(2, 4);
+					//c.rotation = game.rnd.realInRange(0, 5);
+					//c.rotationVelocity = game.rnd.realInRange(10, 30);
+					//c.body.gravity.y = 800;
+					//c.body.velocity.x = v;
+					//c.body.velocity.y = -game.rnd.realInRange(400, 900);
+					//confetti[i] = c;
+				}
+			}
+
+			function validateTaps() {
+				if (!running ||
+					itc1 !== ipc1 ||
+					itc2 !== ipc2 ||
+					itc3 !== ipc3)
+					return;
+
+				endLevel();
+			}
+
+			function setupLevel() {
+				var i;
+
+				if (p1)
+					p1.destroy();
+				if (p2)
+					p2.destroy();
+				if (p3)
+					p3.destroy();
+
+				if (pc1)
+					pc1.destroy();
+				if (pc2)
+					pc2.destroy();
+				if (pc3)
+					pc3.destroy();
+
+				txtScore.setText(score.toString());
+				maxTime = maxMaxTime - ((level >> 2) * 1000);
+				if (maxTime < minMaxTime)
+					maxTime = minMaxTime;
+
+				barTime1.alpha = 1;
+				barTime1.scale.x = 1;
+				barTime2.scale.x = 1;
+
+				for (i = 0; i < maxLives; i++)
+					hearts[i].visible = (i < lives);
+
+				ip1 = game.rnd.integerInRange(0, numPeople - 1);
+				ip2 = game.rnd.integerInRange(0, numPeople - 1);
+				ip3 = game.rnd.integerInRange(0, numPeople - 1);
+
+				if (ip2 === ip1) {
+					ip2++;
+					if (ip2 >= numPeople)
+						ip2 = 0;
+				}
+
+				while (ip3 === ip1 || ip3 === ip2) {
+					ip3++;
+					if (ip3 >= numPeople)
+						ip3 = 0;
+				}
+
+				p1 = game.add.sprite(xp1, yp1, "F_persona0" + (ip1 + 1));
+				p1.animations.add("acao", peopleFrames[ip1], 12, true);
+				p1.animations.play("acao");
+
+				p2 = game.add.sprite(xp2, yp2, "F_persona0" + (ip2 + 1));
+				p2.animations.add("acao", peopleFrames[ip2], 12, true);
+				p2.animations.play("acao");
+
+				p3 = game.add.sprite(xp3, yp3, "F_persona0" + (ip3 + 1));
+				p3.animations.add("acao", peopleFrames[ip3], 12, true);
+				p3.animations.play("acao");
+
+				p1.sendToBack();
+				p2.sendToBack();
+				p3.sendToBack();
+				shelf.sendToBack();
+				bg.sendToBack();
+
+				ipc1 = game.rnd.integerInRange(0, numBeer - 1);
+				ipc2 = game.rnd.integerInRange(0, numBeer - 1);
+				ipc3 = game.rnd.integerInRange(0, numBeer - 1);
+
+				pc1 = game.add.sprite(xp1 + 115, yp1 - 145, "D_cerveja_0" + (ipc1 + 1));
+				pc1.animations.add("acao", beerFrames[ipc1], 5, true);
+				pc1.animations.play("acao");
+
+				pc2 = game.add.sprite(xp2 + 115, yp2 - 145, "D_cerveja_0" + (ipc2 + 1));
+				pc2.animations.add("acao", beerFrames[ipc2], 5, true);
+				pc2.animations.play("acao");
+
+				pc3 = game.add.sprite(xp3 + 115, yp3 - 145, "D_cerveja_0" + (ipc3 + 1));
+				pc3.animations.add("acao", beerFrames[ipc3], 5, true);
+				pc3.animations.play("acao");
+
+				itc1 = game.rnd.integerInRange(0, numBeer - 1);
+				itc2 = game.rnd.integerInRange(0, numBeer - 1);
+				itc3 = game.rnd.integerInRange(0, numBeer - 1);
+
+				while (itc1 === ipc1) {
+					itc1++;
+					if (itc1 >= numBeer)
+						itc1 = 0;
+				}
+
+				while (itc2 === ipc2) {
+					itc2++;
+					if (itc2 >= numBeer)
+						itc2 = 0;
+				}
+
+				while (itc3 === ipc3) {
+					itc3++;
+					if (itc3 >= numBeer)
+						itc3 = 0;
+				}
+
+				adjustTap(1);
+				adjustTap(2);
+				adjustTap(3);
+
+				if (!fade) {
+					fade = game.add.image(0, 0, "preto");
+					fade.width = game.width;
+					fade.height = game.height;
+					fade.alpha = 1;
+				} else {
+					fade.bringToTop();
+				}
+				game.add.tween(fade).to({ alpha: 0.75 }, 500, Phaser.Easing.Sinusoidal.InOut, true).onComplete.add(function () {
+					var timer = game.add.sprite((game.width * 0.5) | 0, (game.height * 0.5) | 0, "Tempo");
+					timer.anchor.set(0.5);
+					timer.animations.add("acao", [0, 0, 1, 2, 3], 2, false);
+					timer.animations.play("acao");
+
+					var tween = game.add.tween(fade).to({ alpha: 0 }, 500, Phaser.Easing.Sinusoidal.InOut, true, 1000 + 1500);
+					tween.onStart.add(function () {
+						game.add.tween(timer).to({ alpha: 0 }, 500, Phaser.Easing.Sinusoidal.InOut, true);
+					});
+					tween.onComplete.add(function () {
+						timer.destroy();
+						fade.destroy();
+						fade = null;
+						running = true;
+						startTime = game.time.now;
+					});
+				});
+			}
+
+			function setupGameOver() {
+				var tela_final = game.add.image(0, 0, "tela_final");
+
+				var txtFinalScore = game.add.text((game.width * 0.5) | 0, (game.height * 0.64) | 0, "Score: " + score, {
+					font: "normal 30px 'Press Start 2P'",
+					align: "center",
+					boundsAlignH: "center",
+					fill: "#ffffff",
+					maxLines: 1
+				});
+				txtFinalScore.anchor.set(0.5);
+
+				var btPlayAgain = game.add.image((game.width * 0.5) | 0, (game.height * 0.8) | 0, "bt_playagain");
+				btPlayAgain.anchor.set(0.5);
+				btPlayAgain.inputEnabled = true;
+				btPlayAgain.input.useHandCursor = true;
+				btPlayAgain.events.onInputDown.add(function () {
+					if (fade)
+						return;
+
+					audioBt.stop();
+					audioBt.play();
+
+					btPlayAgain.alpha = 0;
+					game.add.tween(btPlayAgain).to({ alpha: 1 }, 500, blink, true);
+
+					fade = game.add.image(0, 0, "preto");
+					fade.width = game.width;
+					fade.height = game.height;
+					fade.alpha = 0;
+					game.add.tween(fade).to({ alpha: 1 }, 500, Phaser.Easing.Sinusoidal.InOut, true).onComplete.add(function () {
+						score = 0;
+						lives = maxLives;
+						level = 0;
+
+						tela_final.destroy();
+						tela_final = null;
+						txtFinalScore.destroy();
+						txtFinalScore = null;
+						btPlayAgain.destroy();
+						btPlayAgain = null;
+
+						setupLevel();
+					});
+				});
+
+				btFull.bringToTop();
+
+				fade.bringToTop();
+				game.add.tween(fade).to({ alpha: 0 }, 500, Phaser.Easing.Sinusoidal.InOut, true).onComplete.add(function () {
+					fade.destroy();
+					fade = null;
+				});
+			}
+
+			this.update = function () {
+				if (running) {
+					var timeLeft = (maxTime - (game.time.now - startTime)) / maxTime;
+					if (timeLeft <= 0) {
+						barTime1.scale.x = 0;
+						barTime2.scale.x = 0;
+						barTime1.alpha = 0;
+						endLevel();
+					} else {
+						barTime2.scale.x = timeLeft;
+						barTime1.scale.x = timeLeft;
+						barTime1.alpha = timeLeft;
+					}
+				}
+
+				if (confetti) {
+					var i, c, delta = game.time.physicsElapsed, empty = true;
+					for (i = numConfetti - 1; i >= 0; i--) {
+						if (!(c = confetti[i]))
+							continue;
+						if (c.position.y >= (game.height + 20)) {
+							c.destroy();
+							confetti[i] = null;
+						} else {
+							c.rotation += (c.rotationVelocity * delta);
+							empty = false;
+						}
+					}
+					if (empty)
+						confetti = null;
+				}
+			};
+		}
+
+		game.state.add("InitialState", InitialState);
+		game.state.add("GameState", GameState);
+		game.state.start("InitialState");
+
+		//]]>
+	</script>
+</body>
+</html>
