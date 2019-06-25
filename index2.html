@@ -275,6 +275,23 @@
 						if (divLoadFont)
 							document.body.removeChild(divLoadFont);
 					});
+
+					// Instead of using Phaser's audio system, which loads and
+					// decodes the entire files into memory before playing, let's
+					// use plain HTML audio elements, which supports streaming.
+					// (The playback has been moved here due to permission issues
+					// in Safari)
+					var audioPeople = document.createElement("audio");
+					audioPeople.loop = true;
+					audioPeople.volume = 0.15;
+					audioPeople.src = "assets/people_talking_vbr.mp3";
+					audioPeople.play();
+
+					var audioBlues = document.createElement("audio");
+					audioBlues.loop = true;
+					audioBlues.volume = 0.6;
+					audioBlues.src = "assets/blues_vbr.mp3";
+					audioBlues.play();
 				});
 				return btStart;
 			}
@@ -399,7 +416,7 @@
 
 			var bg, shelf, btFull;
 
-			var audioTap, audioBt, audioPeople, audioBlues;
+			var audioTap, audioBt;
 
 			var score, running, lives, hearts;
 			var level, startTime, maxTime, maxMaxTime = 12000, minMaxTime = 2000;
@@ -492,8 +509,6 @@
 				audioTap.allowMultiple = false;
 				audioBt = game.add.audio("bt_sound_mp3", 0.3, false, true);
 				audioBt.allowMultiple = false;
-				audioPeople = null;
-				audioBlues = null;
 
 				bg = game.add.tileSprite(0, 0, game.width, game.height, "A_textura_parede");
 
@@ -657,23 +672,13 @@
 
 				setupLevel();
 
+				// The background audio has been moved from Phaser to standard HTML
+				// to use native streaming capabilities, and the loading process has
+				// been moved from from here to the actual button click because of
+				// permission issues in Safari!
+
 				// Delay the loading of the background audio to try to make the
 				// game itself load and start faster, even in slow connections.
-				// Also, instead of using Phaser's audio system, which loads and
-				// decodes the entire files into memory before playing, let's use
-				// plain HTML audio elements, which supports streaming.
-				audioPeople = document.createElement("audio");
-				audioPeople.loop = true;
-				audioPeople.volume = 0.15;
-				audioPeople.src = "assets/people_talking_vbr.mp3";
-				audioPeople.play();
-
-				audioBlues = document.createElement("audio");
-				audioBlues.loop = true;
-				audioBlues.volume = 0.6;
-				audioBlues.src = "assets/blues_vbr.mp3";
-				audioBlues.play();
-
 				//var audioLoader = new Phaser.Loader(game);
 				//audioLoader.onFileComplete.add(function (progress, fileKey, success, totalLoadedFiles, totalFiles) {
 				//	if (success) {
